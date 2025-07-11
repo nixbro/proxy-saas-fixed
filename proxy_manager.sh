@@ -18,9 +18,13 @@ LOCK_FILE="$SCRIPT_DIR/proxy_manager.lock"
 
 # Proxy configuration
 PROXY_START_PORT=4000
-PROXY_END_PORT=4010
+PROXY_END_PORT=9999
 MAX_RETRY_ATTEMPTS=3
 RESTART_DELAY=2
+
+# Authentication and traffic monitoring URLs
+AUTH_URL="http://138.201.33.108:8889/api/internal/auth.php"
+TRAFFIC_URL="http://138.201.33.108:8889/api/internal/traffic.php"
 
 # Colors for output
 RED='\033[0;31m'
@@ -132,9 +136,9 @@ start_proxy_instance() {
     while [[ $attempt -le $MAX_RETRY_ATTEMPTS ]]; do
         log_info "Attempt $attempt/$MAX_RETRY_ATTEMPTS for port $port"
         
-        # Build proxy command (works with both free and commercial)
-        local proxy_cmd="proxy http -p \":$port\" --daemon"
-        
+        # Build proxy command with full authentication and traffic monitoring
+        local proxy_cmd="proxy http -p \":$port\" --auth-url \"$AUTH_URL\" --auth-nouser --auth-cache 300 --traffic-url \"$TRAFFIC_URL\" --traffic-mode fast --traffic-interval 5 --daemon"
+
         # Execute the command
         if eval "$proxy_cmd" >/dev/null 2>&1; then
             sleep 2

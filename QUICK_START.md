@@ -32,11 +32,8 @@ sudo ./scripts/test_system.sh
 
 ### **Test API:**
 ```bash
-# Get your server IP
-SERVER_IP=$(curl -s ifconfig.me)
-
 # Test API
-curl "http://$SERVER_IP:8889/api/proxies.php"
+curl "http://138.201.33.108:8889/api/proxies.php"
 ```
 
 ### **Test Proxy:**
@@ -69,8 +66,8 @@ sudo -u proxy-saas /opt/proxy-saas-system/proxy_manager.sh status
 
 After installation, access your system:
 
-- **API Endpoint:** `http://YOUR_SERVER_IP:8889/api/proxies.php`
-- **Health Check:** `http://YOUR_SERVER_IP:8889/api/proxies.php?action=health`
+- **API Endpoint:** `http://138.201.33.108:8889/api/proxies.php`
+- **Health Check:** `http://138.201.33.108:8889/api/proxies.php?action=health`
 - **Proxy Test:** `curl -x http://127.0.0.1:4000 http://httpbin.org/ip`
 - **Service Control:** `sudo systemctl {start|stop|restart|status} proxy-saas-system`
 
@@ -108,7 +105,7 @@ sudo -u proxy-saas /opt/proxy-saas-system/proxy_manager.sh health
 sudo ./scripts/test_system.sh
 
 # Quick API test
-curl "http://$(curl -s ifconfig.me):8889/api/proxies.php?action=health"
+curl "http://138.201.33.108:8889/api/proxies.php?action=health"
 
 # Quick proxy test
 curl -x http://127.0.0.1:4000 http://httpbin.org/ip
@@ -172,7 +169,7 @@ proxy-saas-fixed/
 Your system is working when:
 
 ✅ **Service is running:** `sudo systemctl status proxy-saas-system` shows "active (running)"  
-✅ **API responds:** `curl "http://$(curl -s ifconfig.me):8889/api/proxies.php"` returns JSON  
+✅ **API responds:** `curl "http://138.201.33.108:8889/api/proxies.php"` returns JSON
 ✅ **Proxies work:** `curl -x http://127.0.0.1:4000 http://httpbin.org/ip` returns your IP  
 ✅ **Tests pass:** `sudo ./scripts/test_system.sh` shows "ALL TESTS PASSED"  
 

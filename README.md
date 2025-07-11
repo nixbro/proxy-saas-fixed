@@ -20,18 +20,20 @@ proxy-saas-fixed/
 │   └── internal/
 │       ├── auth.php                    # Authentication API
 │       ├── traffic.php                 # Traffic monitoring API
-│       └── control.php                 # Control API
+│       └── control.php                 # Control API (localhost only)
 ├── database/
 │   ├── schema.sql                      # Complete database schema
 │   └── sample_data.sql                 # Sample data for testing
 ├── nginx/
-│   └── proxy-saas.conf                 # Nginx configuration
+│   ├── proxy-saas.conf                 # Nginx configuration
+│   └── rate-limiting.conf              # Rate limiting configuration
 ├── systemd/
 │   └── proxy-saas-system.service       # Systemd service file
 ├── scripts/
 │   ├── backup.sh                       # Backup script
 │   ├── maintenance.sh                  # Maintenance script
-│   └── test_system.sh                  # System testing script
+│   ├── test_system.sh                  # System testing script
+│   └── test_apis.sh                    # API testing script
 └── logs/
     └── .gitkeep                        # Keep logs directory
 ```
@@ -51,7 +53,7 @@ sudo ./setup_complete.sh
 sudo systemctl status proxy-saas-system
 
 # Test API
-curl "http://$(curl -s ifconfig.me):8889/api/proxies.php"
+curl "http://138.201.33.108:8889/api/proxies.php"
 
 # Test proxy
 curl -x http://127.0.0.1:4000 http://httpbin.org/ip
