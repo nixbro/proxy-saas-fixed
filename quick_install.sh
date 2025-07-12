@@ -142,18 +142,43 @@ EOF
 # Configure MariaDB
 log "🗄️ Configuring MariaDB..."
 systemctl start mariadb && systemctl enable mariadb
-mysql -e "SET PASSWORD FOR 'root'@'localhost' = PASSWORD('$DB_PASS');" 2>/dev/null || true
+
+# Try multiple methods to set root password
+log "🔐 Setting MariaDB root password..."
+mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '$DB_PASS';" 2>/dev/null || \
+mysql -e "SET PASSWORD FOR 'root'@'localhost' = PASSWORD('$DB_PASS');" 2>/dev/null || \
+mysqladmin -u root password "$DB_PASS" 2>/dev/null || \
+mysql -u root -e "UPDATE mysql.user SET Password=PASSWORD('$DB_PASS') WHERE User='root'; FLUSH PRIVILEGES;" 2>/dev/null || true
+
+# Wait a moment for password to take effect
+sleep 2
+
+# Clean up default MariaDB installation
+log "🧹 Securing MariaDB installation..."
+mysql -u root -p"$DB_PASS" -e "DELETE FROM mysql.user WHERE User='';" 2>/dev/null || true
+mysql -u root -p"$DB_PASS" -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');" 2>/dev/null || true
+mysql -u root -p"$DB_PASS" -e "DROP DATABASE IF EXISTS test;" 2>/dev/null || true
+mysql -u root -p"$DB_PASS" -e "DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';" 2>/dev/null || true
+mysql -u root -p"$DB_PASS" -e "FLUSH PRIVILEGES;" 2>/dev/null || true
+
+# Create database and user
+log "📊 Creating database and user..."
 mysql -u root -p"$DB_PASS" -e "
 CREATE DATABASE IF NOT EXISTS proxy_saas CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER IF NOT EXISTS 'proxy_user'@'localhost' IDENTIFIED BY '$DB_PASS';
 GRANT ALL PRIVILEGES ON proxy_saas.* TO 'proxy_user'@'localhost';
 FLUSH PRIVILEGES;
-" 2>/dev/null || mysql -e "
-CREATE DATABASE IF NOT EXISTS proxy_saas CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER IF NOT EXISTS 'proxy_user'@'localhost' IDENTIFIED BY '$DB_PASS';
-GRANT ALL PRIVILEGES ON proxy_saas.* TO 'proxy_user'@'localhost';
-FLUSH PRIVILEGES;
-"
+" 2>/dev/null || {
+    log "⚠️ Trying alternative database creation method..."
+    mysql -e "
+    CREATE DATABASE IF NOT EXISTS proxy_saas CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    CREATE USER IF NOT EXISTS 'proxy_user'@'localhost' IDENTIFIED BY '$DB_PASS';
+    GRANT ALL PRIVILEGES ON proxy_saas.* TO 'proxy_user'@'localhost';
+    FLUSH PRIVILEGES;
+    " 2>/dev/null || {
+        error "Failed to create database. Please run: sudo mysql_secure_installation"
+    }
+}
 
 # Configure Redis
 log "🔴 Configuring Redis..."
